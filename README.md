@@ -15,6 +15,7 @@ brew install libomp
 brew cask install xquartz
 brew install feh
 brew install imagemagick
+brew install pkg-config
 ```
 
 Navigate with your terminal to the directory where you have cloned this repository. 
