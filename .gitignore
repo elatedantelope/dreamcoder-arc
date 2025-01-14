@@ -15,5 +15,6 @@ scratch/
 .DS_Store
 data/
 output/
+envs/
 *.egg-info
 *.img
