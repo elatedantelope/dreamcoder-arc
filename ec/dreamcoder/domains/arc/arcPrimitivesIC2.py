@@ -792,7 +792,7 @@ def ic_splitall(g: Grid) -> List[Grid]:
             ret += [g.newgrid(g.grid[obj], offset=(obj[0].start, obj[1].start)) for obj in objects]
     return ret
 
-struct8 = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]], dtype=np.int)
+struct8 = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]], dtype=int)
 @dsl.primitive
 def split8(g: Grid) -> List[Grid]:
     """
