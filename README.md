@@ -1,10 +1,52 @@
-# ARC DreamCoder
-
+# ARC DreamCoder --Modified,
+Based on the repository:
+https://github.com/mxbi/dreamcoder-arc
+which is described in the paper 
 > **Neural networks for abstraction and reasoning: Towards broad generalization in machines**  
 > *Mikel Bober-Irizar & Soumya Banerjee*
 
 https://arxiv.org/abs/2402.03507
+## Building the DreamCoder environment in MacOs
 
+Install dependencies for the python packages:
+```bash 
+brew install swig
+brew install libomp
+brew cask install xquartz
+brew install feh
+brew install imagemagick
+```
+
+Navigate with your terminal to the directory where you have cloned this repository. 
+
+Create a conda environment, make it look nicer and activate it: 
+```bash
+conda create --prefix ./envs
+conda config --set env_prompt '({name})'
+conda activate ./envs
+```
+Install the following dependencies in the conda virtual environment.
+```bash
+#Needed for the original dreamcoder.
+conda install -y  numpy dill pyzmq matplotlib protobuf scikit-learn scipy
+pip3 install --pre torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cpu
+pip install dill sexpdata pygame pycairo cairocffi psutil pypng Box2D-kengz graphviz frozendict pathos vose
+#Needed for the modifications from the original dreamcoder.
+pip install rich drawsvg pytest wandb arckit line_profiler
+```
+You will need to create a wandb account, the academic plan is free. 
+
+Run  ``` wandb login``` and enter your api key when prompted. 
+
+Now you are ready and can try to run the experiment:
+```bash
+cd ec
+python -u arcbin/arc_mikel2.py -c 1 -t 3600 -R 2400 -i 1
+# -c 1: Run on 1 cores
+# -t 3600: 3600 core-seconds per task
+# -R 2400: Train recognition model for 2400s per iteration (all cores)
+# -i 1: Run for one iteration
+```
 ## Repo overview
 
 Most of this repo follows the primary DreamCoder repo: https://github.com/ellisk42/ec.
