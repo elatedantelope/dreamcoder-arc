@@ -6,7 +6,8 @@ import os
 import traceback
 import subprocess
 import numpy as np
-
+import dill
+from multiprocess import Queue
 
 def multicoreEnumeration(g, tasks, _=None,
                          enumerationTimeout=None,
@@ -29,10 +30,8 @@ def multicoreEnumeration(g, tasks, _=None,
     # library. This is because we need to be able to kill workers.
     #from multiprocess import Process, Queue
 
-    from multiprocessing import Queue
 
      # everything that gets sent between processes will be dilled
-    import dill
     
     solvers = {"ocaml": solveForTask_ocaml,
                "bottom": solveForTask_bottom,   
@@ -82,8 +81,8 @@ def multicoreEnumeration(g, tasks, _=None,
             jobs[k] = jobs.get(k, []) + [t]
 
     disableParallelism = len(jobs) == 1
-    parallelCallback = launchParallelProcess if not disableParallelism else lambda f, * \
-        a, **k: f(*a, **k)
+    parallelCallback = launchParallelProcess if not disableParallelism else lambda wrapf, * \
+        a, **k: wrapf(*a, **k)
     if disableParallelism:
         eprint("Disabling parallelism on the Python side because we only have one job.")
         eprint("If you are using ocaml or bottom, there could still be parallelism.")
@@ -196,7 +195,7 @@ def multicoreEnumeration(g, tasks, _=None,
                 # eprint("(frontend%s) Launching %s (%d tasks) w/ %d CPUs. %f <= MDL < %f. Timeout %f." %
                     #    (os.getpid(), request, len(jobs[j]), allocation[j], lowerBounds[j], lowerBounds[j] + bi, thisTimeout))
                 stopwatches[j].start()
-                parallelCallback(wrapInThread(solver),
+                parallelCallback(wrapInThread, solver, 
                                  q=q, g=g, ID=nextID,
                                  elapsedTime=stopwatches[j].elapsed,
                                  CPUs=allocation[j],
@@ -286,29 +285,28 @@ def multicoreEnumeration(g, tasks, _=None,
 
     return [frontiers[t] for t in tasks], bestSearchTime
 
-def wrapInThread(f):
+def wrapInThread(f, *a, **k):
     """
     Returns a function that is designed to be run in a thread/threadlike process.
     Result will be either put into the q
     """
     import dill
 
-    def _f(*a, **k):
-        q = k.pop("q")
-        ID = k.pop("ID")
-
-        try:
-            r = f(*a, **k)
-            q.put(dill.dumps({"result": "success",
-                   "ID": ID,
-                   "value": r}))
-        except Exception as e:
-            q.put(dill.dumps({"result": "failure",
-                   "exception": e,
-                   "stacktrace": traceback.format_exc(),
-                   "ID": ID}))
-            return
-    return _f
+    # def _f(*a, **k):
+    q = k.pop("q")
+    ID = k.pop("ID")
+    try:
+        r = f(*a, **k)
+        q.put(dill.dumps({"result": "success",
+            "ID": ID,
+            "value": r}))
+    except Exception as e:
+        q.put(dill.dumps({"result": "failure",
+            "exception": e,
+            "stacktrace": traceback.format_exc(),
+            "ID": ID}))
+        return
+    # return _f
 
 
 def solveForTask_ocaml(_=None,
@@ -319,7 +317,7 @@ def solveForTask_ocaml(_=None,
                        timeout=None,
                        testing=None, # FIXME: unused
                        likelihoodModel=None,
-                       evaluationTimeout=None, maximumFrontiers=None):
+                       evaluationTimeout=None, maximumFrontiers=None, use_dctrace=None):
 
     import json
 
@@ -604,6 +602,7 @@ def enumerateForTasks(g, tasks, likelihoodModel, _=None,
     dc_traces = []
     first_solution_map = {}
     try:
+        # eprint(f'Inside g with task {tasks}')
         totalNumberOfPrograms = 0
         while time() < starting + timeout and \
                 any(len(h) < mf for h, mf in zip(hits, maximumFrontiers)) and \
@@ -660,6 +659,9 @@ def enumerateForTasks(g, tasks, likelihoodModel, _=None,
                 break
     except EnumerationTimeout:
         pass
+    except Exception as e:
+        eprint(f'Unknown exception {e}')
+        raise e
     frontiers = {tasks[n]: Frontier([e for _, e in hits[n]],
                                     task=tasks[n])
                  for n in range(len(tasks))}
@@ -671,8 +673,3 @@ def enumerateForTasks(g, tasks, likelihoodModel, _=None,
         return frontiers, searchTimes, totalNumberOfPrograms, dc_traces, first_solution_map
     else:
         return frontiers, searchTimes, totalNumberOfPrograms, None, first_solution_map
-
-
-
-
-

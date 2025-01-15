@@ -10,6 +10,8 @@ import math
 import pickle as pickle
 from itertools import chain
 import heapq
+from multiprocess import Process
+import dill
 
 import hashlib
 import wandb
@@ -320,21 +322,24 @@ PARALLELPROCESSDATA = None
 
 
 def launchParallelProcess(f, *a, **k):
-    global PARALLELPROCESSDATA
+    # global PARALLELPROCESSDATA
 
-    PARALLELPROCESSDATA = [f, a, k]
+    # PARALLELPROCESSDATA = [f, a, k]
+    # eprint(f'launch a {a}')
+    # eprint(f'launch f {f}')
 
-    from multiprocessing import Process
-    p = Process(target=_launchParallelProcess, args=tuple([]))
+    p = Process(target=_launchParallelProcess, args=(f,) + a, kwargs=k)
     p.start()
     PARALLELPROCESSDATA = None
     return p
 
 
-def _launchParallelProcess():
-    global PARALLELPROCESSDATA
-    [f, a, k] = PARALLELPROCESSDATA
+def _launchParallelProcess(f, *a, **k):
+    # global PARALLELPROCESSDATA
     try:
+        # [f, a, k] = PARALLELPROCESSDATA
+        # eprint(f'a {a}')
+        # eprint(f'f {f}')
         f(*a, **k)
     except Exception as e:
         eprint(
