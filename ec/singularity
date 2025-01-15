@@ -13,7 +13,7 @@ From: ubuntu:22.04
 
     HOME=/container
     export HOME
-    PATH="/usr/local/conda/bin:/container/pypy3.6-v7.3.3-linux64/bin:$PATH"
+    PATH="/usr/local/conda/bin:/container/pypy3.6-v7.3.3-aarch64/bin:$PATH"
     export PATH
 
 
@@ -31,17 +31,18 @@ From: ubuntu:22.04
     HOME=/container
     export HOME
     
-    wget https://repo.continuum.io/miniconda/Miniconda3-py37_4.9.2-Linux-x86_64.sh
-    chmod +x Miniconda3-py37_4.9.2-Linux-x86_64.sh
-    ./Miniconda3-py37_4.9.2-Linux-x86_64.sh -b  -p /usr/local/conda
-    rm ./Miniconda3-py37_4.9.2-Linux-x86_64.sh
+    wget https://repo.continuum.io/miniconda/Miniconda3-py37_4.9.2-Linux-aarch64.sh
+    chmod +x Miniconda3-py37_4.9.2-Linux-aarch64.sh
+    ./Miniconda3-py37_4.9.2-Linux-aarch64.sh -b  -p /usr/local/conda
+    rm ./Miniconda3-py37_4.9.2-Linux-aarch64.sh
     export PATH="/usr/local/conda/bin:$PATH"
 
     conda install -y  numpy dill pyzmq matplotlib protobuf scikit-learn scipy #vose-alias-method
-    pip install git+https://github.com/MaxHalford/vose@fae179e5afa45f224204519c10957d087633ae60
+    pip install vose
     pip install dill sexpdata pygame pycairo cairocffi psutil pypng Box2D-kengz graphviz frozendict pathos
     
-    conda install pytorch==1.2.0 torchvision==0.4.0 cpuonly -c pytorch
+    pip3 install --pre torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cpu
+
     
     opam init -y --auto-setup --root /container/.opam
     opam update
@@ -57,11 +58,11 @@ open Core;;
 " >> /container/.ocamlinit
     echo 'eval `opam config env`' >> /container/.bashrc  
 
-    wget https://downloads.python.org/pypy/pypy3.6-v7.3.3-linux64.tar.bz2
-    tar xjvf pypy3.6-v7.3.3-linux64.tar.bz2
-    rm pypy3.6-v7.3.3-linux64.tar.bz2
-    mv pypy3.6-v7.3.3-linux64 /container
-    PATH=/container/pypy3.6-v7.3.3-linux64/bin:$PATH
+    wget https://downloads.python.org/pypy/pypy3.6-v7.3.3-aarch64.tar.bz2
+    tar xjvf pypy3.6-v7.3.3-aarch64.tar.bz2
+    rm pypy3.6-v7.3.3-aarch64.tar.bz2
+    mv pypy3.6-v7.3.3-aarch64 /container
+    PATH=/container/pypy3.6-v7.3.3-aarch64/bin:$PATH
 
     pypy3 -m ensurepip
     pypy3 -m pip install vmprof
