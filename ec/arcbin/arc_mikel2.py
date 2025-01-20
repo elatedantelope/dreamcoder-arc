@@ -99,7 +99,7 @@ if __name__ == '__main__':
         run.define_metric('test-hit3-both', summary='max', goal='maximize', step_metric='iteration')
     else:
         print('Running on train-set')
-        training = get_arc_tasks(n=400, eval=False)
+        training = get_arc_tasks(n=300, eval=False)
         run.define_metric('test-hit1', summary='max', goal='maximize', step_metric='iteration')
         run.define_metric('test-hit3', summary='max', goal='maximize', step_metric='iteration')
 
