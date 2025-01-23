@@ -9,19 +9,27 @@ def rotate(array):
 # Open and read the JSON file
 with open('arc1.json', 'r') as file:
     data = json.load(file)
+    print(type(data))
 
-with open("transformations.json", "w") as outfile:
+
+with open("augmented_data.json", "w") as outfile:
+    outer={}
+
+
     for id in data["train"].keys():
-        aug_dict = {id: {"train": [], "test": []}}
+        aug_dict = {"train": [], "test": []}
         for training_item in range(len(data["train"][id]["train"])):
             input_array = np.array(data["train"][id]["train"][training_item]["input"])
             output_array = np.array(data["train"][id]["train"][training_item]["output"])
-            aug_dict[id]["train"].append({"input": rotate(input_array), "output": rotate(output_array)})
+            aug_dict["train"].append({"input": rotate(input_array), "output": rotate(output_array)})
         for testing_item in range(len(data["train"][id]["test"])):
             input_array = np.array(data["train"][id]["test"][testing_item]["input"])
             output_array = np.array(data["train"][id]["test"][testing_item]["output"])
-            aug_dict[id]["test"].append({"input": rotate(input_array), "output": rotate(output_array)})
-    json.dump(aug_dict, outfile)
+            aug_dict["test"].append({"input": rotate(input_array), "output": rotate(output_array)})
+        outer[id]=aug_dict
+ 
+    json.dump(outer, outfile)
+
 
 '''
 for id in data["train"].keys():
