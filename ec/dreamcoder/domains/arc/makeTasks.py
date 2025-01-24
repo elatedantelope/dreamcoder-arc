@@ -1,5 +1,5 @@
-from dreamcoder.domains.arc.arcPrimitivesIC2 import *
-import dreamcoder.domains.arc.arcPrimitivesIC2 as p
+from dreamcoder.domains.arc.test_arcPrimitivesIC2 import *
+import dreamcoder.domains.arc.test_arcPrimitivesIC2 as p
 from dreamcoder.domains.arc.arcInput import load_task, num_to_id
 
 import arckit
@@ -68,8 +68,21 @@ def test_examples(task_dict):
 #     return task
 
 def convert_arc_task(task, include_test=False):
+    #examples = [((Grid(x),), Grid(y)) for x, y in task.train]
+    #task is of type Task
+    #Task.test returns np.array [(np.array(example['input']), np.array(example['output'])) for example in train]
+    #It is a list, containing 
+    # (
+        # np.array(example['input']), 
+        # np.array(example['output'])
+    #)
+    
     examples = [((Grid(x),), Grid(y)) for x, y in task.train]
+    #examples = [((tuple(map(tuple, x)),), tuple(map(tuple, y))) for x, y in task.train]
+    #examples = [tuple(map(tuple, example)) for example in examplesT]
     test_examples = [((Grid(x),), Grid(y)) for x, y in task.test]
+    #test_examples = [((tuple(map(tuple, x)),), tuple(map(tuple, y))) for x, y in task.test]
+    
     if include_test:
         examples += test_examples
 

@@ -8,7 +8,9 @@ from dreamcoder.dreamcoder import commandlineArguments, ecIterator
 from dreamcoder.grammar import Grammar
 from dreamcoder.domains.arc.makeTasks import get_arc_task, get_arc_tasks
 from dreamcoder.domains.arc.main import MikelArcNet
-from dreamcoder.domains.arc import arcPrimitivesIC2
+#from dreamcoder.domains.arc import arcPrimitivesIC2
+#from dreamcoder.domains.arc import old_arcPrimitivesIC2
+from dreamcoder.domains.arc import test_arcPrimitivesIC2
 
 import wandb
 
@@ -37,12 +39,15 @@ def test_evaluate(task, soln):
 
 
 if __name__ == '__main__':
-    primitives = arcPrimitivesIC2.dsl.primitives.values()
-    arcPrimitivesIC2.dsl.generate_ocaml_primitives()
-
+    #primitives = arcPrimitivesIC2.dsl.primitives.values()
+    #arcPrimitivesIC2.dsl.generate_ocaml_primitives()
+    #primitives = old_arcPrimitivesIC2.dsl.primitives.values()
+    #old_arcPrimitivesIC2.dsl.generate_ocaml_primitives()
+    primitives = test_arcPrimitivesIC2.dsl.primitives.values()
+    test_arcPrimitivesIC2.dsl.generate_ocaml_primitives()
     # make a starting grammar to enumerate over
     grammar = Grammar.uniform(primitives)
-
+    print(grammar)
     def extra_args(parser):
         parser.add_argument('--evalset', action='store_true', default=False, help='Use the eval set instead of the train set')
         parser.add_argument('--bothset', action='store_true', default=False, help='Use both datasets (800 tasks)')
@@ -107,7 +112,7 @@ if __name__ == '__main__':
     run.define_metric('recog-loss', summary='min', goal='minimise', step_metric='batch')
     run.define_metric('recog-mdl', summary='min', goal='minimise', step_metric='batch')
     run.define_metric('recog-class-loss', summary='min', goal='minimise', step_metric='batch')
-
+    
     # iterate over wake and sleep cycles for our task
     os.makedirs('./experimentOutputs/arc/', exist_ok=True)
     generator = ecIterator(grammar,
@@ -115,7 +120,6 @@ if __name__ == '__main__':
                         testingTasks=[],
                         outputPrefix='./experimentOutputs/arc/',
                         **args)
-
     # run the DreamCoder learning process for the set number of iterations
     for i, result in enumerate(generator):
         # print(result)
