@@ -1,5 +1,4 @@
 all:
-	rm -f data/geom/logoDrawString
 	cd solvers && \
 	  jbuilder build solver.exe && \
 	  jbuilder build versionDemo.exe && \
@@ -13,14 +12,10 @@ all:
 	  cp _build/default/helmholtz.exe ../helmholtz && \
 	  cp _build/default/protonet-tester.exe ../protonet-tester && \
 	  cp _build/default/logoDrawString.exe \
-	    ../logoDrawString && \
-	  ln -s ../../logoDrawString \
-	    ../data/geom/logoDrawString
-
+	    ../logoDrawString
 clean:
 	cd solvers && jbuilder clean
 	rm -f solver
 	rm -f compression
 	rm -f helmholtz
 	rm -f logoDrawString
-	rm -f data/geom/logoDrawString

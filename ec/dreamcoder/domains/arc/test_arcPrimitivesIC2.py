@@ -148,9 +148,9 @@ Size = NewType("Size", Tuple[int, int])
 tcount = baseType("count")
 Count = NewType("Count", int)
 
-tnumerical = baseType("numerical")
+# tnumerical = baseType("numerical")
 #Numerical = NewType("Numerical", Union[int, Tuple[int, int]])
-Numerical = int | Tuple[int,int]
+# Numerical = int | Tuple[int,int]
 
 tcontainer = baseType("container")
 
@@ -189,21 +189,21 @@ tindices = baseType("indices")
 #Indices = NewType("Indices", FrozenSet[IntegerTuple])
 Indices = FrozenSet[IntegerTuple]
 
-tpatch = baseType("patch")
+# tpatch = baseType("patch")
 #tpatch = TypeConstructor("patch", [Object, Indices])
 #Patch = NewType("Patch", Union[Object, Indices])
-Patch = Object | Indices
+# Patch = Object | Indices
 
-tgrid = baseType("grid")
+# tgrid = baseType("grid")
 #Grid = Tuple[Tuple[int]]
 
 tpiece = baseType("piece")
 #tpiece = TypeConstructor("piece", [dslGrid, Object, Indices])
 #Piece = NewType("Piece", Union[dslGrid, Patch])
-Piece = dslGrid | Patch
+# Piece = dslGrid | Patch
 
-telement = baseType("element")
-Element = Object | dslGrid
+# telement = baseType("element")
+# Element = Object | dslGrid
 
 tindicesset = baseType("indicesset")
 IndicesSet = FrozenSet[Indices]
@@ -214,7 +214,7 @@ Objects = FrozenSet[Object]
 
 
 tany = baseType("any")
-Any = Numerical | Integer | Boolean | IntegerSet | Piece | Patch | dslGrid | Objects | IndicesSet | Element | Indices | Object | Cell | IntegerTuple | TupleTuple | Container | FrozenSet | Tuple | Callable | ContainerContainer
+# Any = Numerical | Integer | Boolean | IntegerSet | Piece | Patch | dslGrid | Objects | IndicesSet | Element | Indices | Object | Cell | IntegerTuple | TupleTuple | Container | FrozenSet | Tuple | Callable | ContainerContainer
 
 
 typemap: Dict[Type, TypeConstructor] = {
@@ -223,9 +223,9 @@ typemap: Dict[Type, TypeConstructor] = {
     Size: tsize,
     Count: tcount,
     #Grid: tgrid,
-    Numerical: tnumerical,
+    # Numerical: tnumerical,
     Boolean: tboolean,
-    Any: tany,
+    # Any: tany,
     Container: tcontainer,
     FrozenSet: tfrozenset,
     Tuple: ttuple,
@@ -234,9 +234,9 @@ typemap: Dict[Type, TypeConstructor] = {
     IntegerSet: tintegerset,
     IntegerTuple: tintegertuple,
     TupleTuple: ttupletuple,
-    Piece: tpiece,
-    Element: telement,
-    Patch: tpatch,
+    # Piece: tpiece,
+    # Element: telement,
+    # Patch: tpatch,
     IndicesSet: tindicesset,
     Indices: tindices,
     Objects: tobjects,
@@ -685,6 +685,8 @@ def divideInt(
     b: int
 ) -> int:
     """ floor division """
+    if b == 0:
+        primitive_assert(False, 'Function not designed for 0, b')
     return a // b
 
 @dsl.primitive
@@ -708,6 +710,8 @@ def divideCordInt(
     a: Cord,
     b: int
 ) -> Cord:
+    if b == 0:
+        primitive_assert(False, 'Function not designed for 0, b')
     """ floor division """
     return (a[0] // b, a[1] // b)
 
@@ -4589,6 +4593,8 @@ def downscale(
     grid: dslGrid,
     factor: Integer
 ) -> dslGrid:
+    if factor == 0: #added to prevent division by zero errors
+        return grid
     """ downscale grid """
     h, w = len(grid), len(grid[0])
     g = tuple()
@@ -4642,6 +4648,8 @@ def hsplit(
     grid: dslGrid,
     n: Integer
 ) -> Tuple:
+    if n == 0:
+        primitive_assert(False, 'Function not designed for 0, n')
     """ split grid horizontally """
     h, w = len(grid), len(grid[0]) // n
     offset = len(grid[0]) % n != 0
@@ -4652,6 +4660,8 @@ def vsplit(
     grid: dslGrid,
     n: Integer
 ) -> Tuple:
+    if n == 0:
+        primitive_assert(False, 'Function not designed for 0, n')
     """ split grid vertically """
     h, w = len(grid) // n, len(grid[0])
     offset = len(grid) % n != 0
