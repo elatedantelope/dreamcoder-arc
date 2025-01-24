@@ -31,10 +31,10 @@ From: ubuntu:22.04
     HOME=/container
     export HOME
     
-    wget https://repo.continuum.io/miniconda/Miniconda3-py37_4.9.2-Linux-linux64.sh
-    chmod +x Miniconda3-py37_4.9.2-Linux-linux64.sh
-    ./Miniconda3-py37_4.9.2-Linux-linux64.sh -b  -p /usr/local/conda
-    rm ./Miniconda3-py37_4.9.2-Linux-linux64.sh
+    wget https://repo.continuum.io/miniconda/Miniconda3-py37_4.9.2-Linux-x86_64.sh
+    chmod +x Miniconda3-py37_4.9.2-Linux-x86_64.sh
+    ./Miniconda3-py37_4.9.2-Linux-x86_64.sh -b  -p /usr/local/conda
+    rm ./Miniconda3-py37_4.9.2-Linux-x86_64.sh
     export PATH="/usr/local/conda/bin:$PATH"
 
     conda install -y  numpy dill pyzmq matplotlib protobuf scikit-learn scipy #vose-alias-method
