@@ -5375,10 +5375,18 @@ dsl.register((3,3), "THREE_BY_THREE", [tcord])
 
 
 
-
+def check_ragged(x:dslGrid) -> Boolean:
+    t = len(x[0])
+    for row in x:
+        if len(row) != t:
+            return True
+    return False
 
 def ttToGrid(x:dslGrid) -> Grid:
+    if check_ragged(x):
+        primitive_assert(False, "This is not of the right shape for Grid")
     return Grid(np.array(x))
+        
 
 print(f"Registered {len(dsl.primitives)} total primitives.")
 
