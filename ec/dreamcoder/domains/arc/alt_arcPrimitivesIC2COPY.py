@@ -194,7 +194,7 @@ class DSL:
             primitive = Primitive(name, dc_type, f)
             primitive.typesig = typesig # Allow later reflection
             self.primitives[name] = primitive
-            print(primitive.value)
+            #print(primitive.value)
             if self.verbose:
                 print(f"Registered value {name} of type {dc_type}.")
 
@@ -315,9 +315,20 @@ def check_ragged(x:dslGrid) -> Boolean:
             return True
     return False
 
+def contains_greater_than(x:dslGrid, n:Integer):
+    return any(value > n for row in x for value in row)
+
+def contains_less_than(x:dslGrid, n:Integer):
+    return any(value < n for row in x for value in row)
+
+
 def ttToGrid(x:dslGrid) -> Grid:
     if check_ragged(x):
         primitive_assert(False, "This is not of the right shape for Grid")
+    if contains_greater_than(x, 9):
+        primitive_assert(False, "Wrong Color")
+    if contains_less_than(x, 0):
+        primitive_assert(False, "Wrong Color")
     return Grid(np.array(x))
 
 
@@ -528,7 +539,7 @@ def upscaleObject(
             for jo in range(factor):
                 o.add((value, (i * factor + io, j * factor + jo)))
     return shiftObject(frozenset(o), (di_inv, dj_inv))
-  
+
 @dsl.primitive
 def shiftObject(
     patch: Object,
@@ -792,51 +803,311 @@ def firstObjects(
     """ first item of container """
     return next(iter(container))
 
-
-
-
-print(f"Registered {len(dsl.primitives)} total primitives.")
-
-p = dsl
-
-
-### comment everything down ###
-
-
-'''
 @dsl.primitive
-def dmirrordslGrid(
-    piece: Grid
+def asindices(
+    grid: Grid
+) -> Indices:
+    """ indices of all grid cells """
+    temp = gridToTT(grid)
+    grid = temp
+    return frozenset((i, j) for i in range(len(grid)) for j in range(len(grid[0])))
+
+@dsl.primitive
+def dneighbors(
+    loc: Cord
+) -> Indices:
+    """ directly adjacent indices """
+    return frozenset({(loc[0] - 1, loc[1]), (loc[0] + 1, loc[1]), (loc[0], loc[1] - 1), (loc[0], loc[1] + 1)})
+
+@dsl.primitive
+def ineighbors(
+    loc: Cord
+) -> Indices:
+    """ diagonally adjacent indices """
+    return frozenset({(loc[0] - 1, loc[1] - 1), (loc[0] - 1, loc[1] + 1), (loc[0] + 1, loc[1] - 1), (loc[0] + 1, loc[1] + 1)})
+
+@dsl.primitive
+def neighbors(
+    loc: Cord
+) -> Indices:
+    """ adjacent indices """
+    return dneighbors(loc) | ineighbors(loc)
+
+@dsl.primitive
+def objectS(
+    grid: Grid,
+    univalued: Boolean,
+    diagonal: Boolean,
+    without_bg: Boolean
+) -> Objects:
+    """ objects occurring on the grid """
+    temp = gridToTT(grid)
+    grid = temp
+    bg = mostcolordslGrid(ttToGrid(grid)) if without_bg else None
+    objs = set()
+    occupied = set()
+    h, w = len(grid), len(grid[0])
+    unvisited = asindices(ttToGrid(grid))
+    diagfun = neighbors if diagonal else dneighbors
+    for loc in unvisited:
+        if loc in occupied:
+            continue
+        val = grid[loc[0]][loc[1]]
+        if val == bg:
+            continue
+        obj = {(val, loc)}
+        cands = {loc}
+        while len(cands) > 0:
+            neighborhood = set()
+            for cand in cands:
+                v = grid[cand[0]][cand[1]]
+                if (val == v) if univalued else (v != bg):
+                    obj.add((v, cand))
+                    occupied.add(cand)
+                    neighborhood |= {
+                        (i, j) for i, j in diagfun(cand) if 0 <= i < h and 0 <= j < w
+                    }
+            cands = neighborhood - occupied
+        objs.add(frozenset(obj))
+    return frozenset(objs)
+
+@dsl.primitive
+def subgridObject(
+    patch: Object,
+    grid: Grid
 ) -> Grid:
+    """ smallest subgrid containing object """
+    return crop(grid, ulcornerObject(patch), shapeObject(patch))
+
+@dsl.primitive
+def subgridIndices(
+    patch: Indices,
+    grid: Grid
+) -> Grid:
+    """ smallest subgrid containing object """
+    return crop(grid, ulcornerIndices(patch), shapeIndices(patch))
+
+@dsl.primitive
+def heightdslGrid(
+    piece: Grid
+) -> Integer:
+    """ height of grid or patch """
     temp = gridToTT(piece)
     piece = temp
-    """ mirroring along diagonal """
-    if isinstance(piece, tuple):
-        return ttToGrid(tuple(zip(*piece)))
+    if len(piece) == 0:
+        return 0
+    return len(piece)
 
 @dsl.primitive
-def dmirrorObject(
+def lowermostObject(
+    patch: Object
+) -> Integer:
+    """ row index of lowermost occupied cell """
+    return max(i for i, j in toindicesObject(patch))
+
+@dsl.primitive
+def lowermostIndices(
+    patch: Indices
+) -> Integer:
+    """ row index of lowermost occupied cell """
+    return max(i for i, j in toindicesIndices(patch))
+
+@dsl.primitive
+def uppermostObject(
+    patch: Object
+) -> Integer:
+    """ row index of uppermost occupied cell """
+    return min(i for i, j in toindicesObject(patch))
+
+@dsl.primitive
+def uppermostIndices(
+    patch: Indices
+) -> Integer:
+    """ row index of uppermost occupied cell """
+    return min(i for i, j in toindicesIndices(patch))
+
+@dsl.primitive
+def heightObject(
     piece: Object
-) -> Object:
-    """ mirroring along diagonal """
-    if isinstance(piece, tuple):
-        return tuple(zip(*piece))
-    a, b = ulcornerObject(piece)
-    if isinstance(next(iter(piece))[1], tuple):
-        return frozenset((v, (j - b + a, i - a + b)) for v, (i, j) in piece)
-    return frozenset((j - b + a, i - a + b) for i, j in piece)
+) -> Integer:
+    """ height of grid or patch """
+    if len(piece) == 0:
+        return 0
+    return lowermostObject(piece) - uppermostObject(piece) + 1
 
 @dsl.primitive
-def dmirrorIndices(
+def heightIndices(
     piece: Indices
+) -> Integer:
+    """ height of grid or patch """
+    if len(piece) == 0:
+        return 0
+    return lowermostIndices(piece) - uppermostIndices(piece) + 1
+
+@dsl.primitive
+def widthdslGrid(
+    piece: Grid
+) -> Integer:
+    """ width of grid or patch """
+    temp = gridToTT(piece)
+    piece = temp
+    if len(piece) == 0:
+        return 0
+    return len(piece[0])
+
+@dsl.primitive
+def rightmostObject(
+    patch: Object
+) -> Integer:
+    """ column index of rightmost occupied cell """
+    return max(j for i, j in toindicesObject(patch))
+
+@dsl.primitive
+def rightmostIndices(
+    patch: Indices
+) -> Integer:
+    """ column index of rightmost occupied cell """
+    return max(j for i, j in toindicesIndices(patch))
+
+@dsl.primitive
+def leftmostObject(
+    patch: Object
+) -> Integer:
+    """ column index of leftmost occupied cell """
+    return min(j for i, j in toindicesObject(patch))
+
+@dsl.primitive
+def leftmostIndices(
+    patch: Indices
+) -> Integer:
+    """ column index of leftmost occupied cell """
+    return min(j for i, j in toindicesIndices(patch))
+
+@dsl.primitive
+def widthObject(
+    piece: Object
+) -> Integer:
+    """ width of grid or patch """
+    if len(piece) == 0:
+        return 0
+    return rightmostObject(piece) - leftmostObject(piece) + 1
+
+@dsl.primitive
+def widthIndices(
+    piece: Indices
+) -> Integer:
+    """ width of grid or patch """
+    if len(piece) == 0:
+        return 0
+    return rightmostIndices(piece) - leftmostIndices(piece) + 1
+
+@dsl.primitive
+def shapedslGrid(
+    piece: Grid
+) -> Cord:
+    """ height and width of grid or patch """
+    return (heightdslGrid(piece), widthdslGrid(piece))
+
+@dsl.primitive
+def shapeObject(
+    piece: Object
+) -> Cord:
+    """ height and width of grid or patch """
+    return (heightObject(piece), widthObject(piece))
+
+@dsl.primitive
+def shapeIndices(
+    piece: Indices
+) -> Cord:
+    """ height and width of grid or patch """
+    return (heightIndices(piece), widthIndices(piece))
+
+@dsl.primitive
+def ofcolor(
+    grid: Grid,
+    value: Integer
 ) -> Indices:
-    """ mirroring along diagonal """
-    if isinstance(piece, tuple):
-        return tuple(zip(*piece))
-    a, b = ulcornerIndices(piece)
-    if isinstance(next(iter(piece))[1], tuple):
-        return frozenset((v, (j - b + a, i - a + b)) for v, (i, j) in piece)
-    return frozenset((j - b + a, i - a + b) for i, j in piece)
+    """ indices of all grid cells with value """
+    temp = gridToTT(grid)
+    grid = temp
+    return frozenset((i, j) for i, r in enumerate(grid) for j, v in enumerate(r) if v == value)
+
+
+@dsl.primitive
+def backdropObject(
+    patch: Object
+) -> Indices:
+    """ indices in bounding box of patch """
+    if len(patch) == 0:
+        return frozenset({})
+    indices = toindicesObject(patch)
+    si, sj = ulcornerIndices(indices)
+    ei, ej = lrcornerObject(patch)
+    return frozenset((i, j) for i in range(si, ei + 1) for j in range(sj, ej + 1))
+
+@dsl.primitive
+def backdropIndices(
+    patch: Indices
+) -> Indices:
+    """ indices in bounding box of patch """
+    if len(patch) == 0:
+        return frozenset({})
+    indices = toindicesIndices(patch)
+    si, sj = ulcornerIndices(indices)
+    ei, ej = lrcornerIndices(patch)
+    return frozenset((i, j) for i in range(si, ei + 1) for j in range(sj, ej + 1))
+
+@dsl.primitive
+def deltaObject(
+    patch: Object
+) -> Indices:
+    """ indices in bounding box but not part of patch """
+    if len(patch) == 0:
+        return frozenset({})
+    return backdropObject(patch) - toindicesObject(patch)
+
+@dsl.primitive
+def deltaIndices(
+    patch: Indices
+) -> Indices:
+    """ indices in bounding box but not part of patch """
+    if len(patch) == 0:
+        return frozenset({})
+    return backdropIndices(patch) - toindicesIndices(patch)
+
+@dsl.primitive
+def fillObject(
+    grid: Grid,
+    value: Integer,
+    patch: Object
+) -> Grid:
+    """ fill value at indices """
+    temp = gridToTT(grid)
+    grid = temp
+    h, w = len(grid), len(grid[0])
+    grid_filled = list(list(row) for row in grid)
+    for i, j in toindicesObject(patch):
+        if 0 <= i < h and 0 <= j < w:
+            grid_filled[i][j] = value
+    return ttToGrid(tuple(tuple(row) for row in grid_filled))
+
+@dsl.primitive
+def fillIndices(
+    grid: Grid,
+    value: Integer,
+    patch: Indices
+) -> Grid:
+    """ fill value at indices """
+    temp = gridToTT(grid)
+    grid = temp
+    h, w = len(grid), len(grid[0])
+    grid_filled = list(list(row) for row in grid)
+    for i, j in toindicesIndices(patch):
+        if 0 <= i < h and 0 <= j < w:
+            grid_filled[i][j] = value
+    return ttToGrid(tuple(tuple(row) for row in grid_filled))
+
+
 
 @dsl.primitive
 def identityCord(
@@ -3966,84 +4237,10 @@ def leastcolordslGrid(
     values = [v for v, _ in element]
     return min(set(values), key=values.count)
 
-@dsl.primitive
-def heightdslGrid(
-    piece: Grid
-) -> Integer:
-    """ height of grid or patch """
-    temp = gridToTT(piece)
-    piece = temp
-    if len(piece) == 0:
-        return 0
-    return len(piece)
 
-@dsl.primitive
-def heightObject(
-    piece: Object
-) -> Integer:
-    """ height of grid or patch """
-    if len(piece) == 0:
-        return 0
-    return lowermostObject(piece) - uppermostObject(piece) + 1
 
-@dsl.primitive
-def heightIndices(
-    piece: Indices
-) -> Integer:
-    """ height of grid or patch """
-    if len(piece) == 0:
-        return 0
-    return lowermostIndices(piece) - uppermostIndices(piece) + 1
 
-@dsl.primitive
-def widthdslGrid(
-    piece: Grid
-) -> Integer:
-    """ width of grid or patch """
-    temp = gridToTT(piece)
-    piece = temp
-    if len(piece) == 0:
-        return 0
-    return len(piece[0])
 
-@dsl.primitive
-def widthObject(
-    piece: Object
-) -> Integer:
-    """ width of grid or patch """
-    if len(piece) == 0:
-        return 0
-    return rightmostObject(piece) - leftmostObject(piece) + 1
-
-@dsl.primitive
-def widthIndices(
-    piece: Indices
-) -> Integer:
-    """ width of grid or patch """
-    if len(piece) == 0:
-        return 0
-    return rightmostIndices(piece) - leftmostIndices(piece) + 1
-
-@dsl.primitive
-def shapedslGrid(
-    piece: Grid
-) -> Cord:
-    """ height and width of grid or patch """
-    return (heightdslGrid(piece), widthdslGrid(piece))
-
-@dsl.primitive
-def shapeObject(
-    piece: Object
-) -> Cord:
-    """ height and width of grid or patch """
-    return (heightObject(piece), widthObject(piece))
-
-@dsl.primitive
-def shapeIndices(
-    piece: Indices
-) -> Cord:
-    """ height and width of grid or patch """
-    return (heightIndices(piece), widthIndices(piece))
 
 @dsl.primitive
 def portraitdslGrid(
@@ -4100,24 +4297,9 @@ def sizefilter(
     """ filter items by size """
     return frozenset(item for item in container if len(item) == n)
 
-@dsl.primitive
-def asindices(
-    grid: Grid
-) -> Indices:
-    """ indices of all grid cells """
-    temp = gridToTT(grid)
-    grid = temp
-    return frozenset((i, j) for i in range(len(grid)) for j in range(len(grid[0])))
 
-@dsl.primitive
-def ofcolor(
-    grid: Grid,
-    value: Integer
-) -> Indices:
-    """ indices of all grid cells with value """
-    temp = gridToTT(grid)
-    grid = temp
-    return frozenset((i, j) for i, r in enumerate(grid) for j, v in enumerate(r) if v == value)
+
+
 
 @dsl.primitive
 def urcornerObject(
@@ -4199,64 +4381,13 @@ def normalizeIndices(
         return patch
     return shiftIndices(patch, (-uppermostIndices(patch), -leftmostIndices(patch)))
 
-@dsl.primitive
-def dneighbors(
-    loc: Cord
-) -> Indices:
-    """ directly adjacent indices """
-    return frozenset({(loc[0] - 1, loc[1]), (loc[0] + 1, loc[1]), (loc[0], loc[1] - 1), (loc[0], loc[1] + 1)})
 
-@dsl.primitive
-def ineighbors(
-    loc: Cord
-) -> Indices:
-    """ diagonally adjacent indices """
-    return frozenset({(loc[0] - 1, loc[1] - 1), (loc[0] - 1, loc[1] + 1), (loc[0] + 1, loc[1] - 1), (loc[0] + 1, loc[1] + 1)})
 
-@dsl.primitive
-def neighbors(
-    loc: Cord
-) -> Indices:
-    """ adjacent indices """
-    return dneighbors(loc) | ineighbors(loc)
 
-@dsl.primitive
-def objectS(
-    grid: Grid,
-    univalued: Boolean,
-    diagonal: Boolean,
-    without_bg: Boolean
-) -> Objects:
-    """ objects occurring on the grid """
-    temp = gridToTT(grid)
-    grid = temp
-    bg = mostcolordslGrid(ttToGrid(grid)) if without_bg else None
-    objs = set()
-    occupied = set()
-    h, w = len(grid), len(grid[0])
-    unvisited = asindices(ttToGrid(grid))
-    diagfun = neighbors if diagonal else dneighbors
-    for loc in unvisited:
-        if loc in occupied:
-            continue
-        val = grid[loc[0]][loc[1]]
-        if val == bg:
-            continue
-        obj = {(val, loc)}
-        cands = {loc}
-        while len(cands) > 0:
-            neighborhood = set()
-            for cand in cands:
-                v = grid[cand[0]][cand[1]]
-                if (val == v) if univalued else (v != bg):
-                    obj.add((v, cand))
-                    occupied.add(cand)
-                    neighborhood |= {
-                        (i, j) for i, j in diagfun(cand) if 0 <= i < h and 0 <= j < w
-                    }
-            cands = neighborhood - occupied
-        objs.add(frozenset(obj))
-    return frozenset(objs)
+
+
+
+
 
 @dsl.primitive
 def partition(
@@ -4284,61 +4415,13 @@ def fgpartition(
         ) for value in palettedslGrid(ttToGrid(grid)) - {mostcolordslGrid(ttToGrid(grid))}
     )
 
-@dsl.primitive
-def uppermostObject(
-    patch: Object
-) -> Integer:
-    """ row index of uppermost occupied cell """
-    return min(i for i, j in toindicesObject(patch))
 
-@dsl.primitive
-def uppermostIndices(
-    patch: Indices
-) -> Integer:
-    """ row index of uppermost occupied cell """
-    return min(i for i, j in toindicesIndices(patch))
 
-@dsl.primitive
-def lowermostObject(
-    patch: Object
-) -> Integer:
-    """ row index of lowermost occupied cell """
-    return max(i for i, j in toindicesObject(patch))
 
-@dsl.primitive
-def lowermostIndices(
-    patch: Indices
-) -> Integer:
-    """ row index of lowermost occupied cell """
-    return max(i for i, j in toindicesIndices(patch))
 
-@dsl.primitive
-def leftmostObject(
-    patch: Object
-) -> Integer:
-    """ column index of leftmost occupied cell """
-    return min(j for i, j in toindicesObject(patch))
 
-@dsl.primitive
-def leftmostIndices(
-    patch: Indices
-) -> Integer:
-    """ column index of leftmost occupied cell """
-    return min(j for i, j in toindicesIndices(patch))
 
-@dsl.primitive
-def rightmostObject(
-    patch: Object
-) -> Integer:
-    """ column index of rightmost occupied cell """
-    return max(j for i, j in toindicesObject(patch))
 
-@dsl.primitive
-def rightmostIndices(
-    patch: Indices
-) -> Integer:
-    """ column index of rightmost occupied cell """
-    return max(j for i, j in toindicesIndices(patch))
 
 @dsl.primitive
 def squaredslGrid(
@@ -4662,37 +4745,7 @@ def cmirrorIndices(
     """ mirroring along counterdiagonal """
     return vmirrorIndices(dmirrorIndices(vmirrorIndices(piece)))
 
-@dsl.primitive
-def fillObject(
-    grid: Grid,
-    value: Integer,
-    patch: Object
-) -> Grid:
-    """ fill value at indices """
-    temp = gridToTT(grid)
-    grid = temp
-    h, w = len(grid), len(grid[0])
-    grid_filled = list(list(row) for row in grid)
-    for i, j in toindicesObject(patch):
-        if 0 <= i < h and 0 <= j < w:
-            grid_filled[i][j] = value
-    return ttToGrid(tuple(tuple(row) for row in grid_filled))
 
-@dsl.primitive
-def fillIndices(
-    grid: Grid,
-    value: Integer,
-    patch: Indices
-) -> Grid:
-    """ fill value at indices """
-    temp = gridToTT(grid)
-    grid = temp
-    h, w = len(grid), len(grid[0])
-    grid_filled = list(list(row) for row in grid)
-    for i, j in toindicesIndices(patch):
-        if 0 <= i < h and 0 <= j < w:
-            grid_filled[i][j] = value
-    return ttToGrid(tuple(tuple(row) for row in grid_filled))
 
 @dsl.primitive
 def paint(
@@ -4792,29 +4845,10 @@ def vupscale(
     return ttToGrid(g)
 
 
-    
-
-
-@dsl.primitive
 
 
 
 
-@dsl.primitive
-def subgridObject(
-    patch: Object,
-    grid: Grid
-) -> Grid:
-    """ smallest subgrid containing object """
-    return crop(grid, ulcornerObject(patch), shapeObject(patch))
-
-@dsl.primitive
-def subgridIndices(
-    patch: Indices,
-    grid: Grid
-) -> Grid:
-    """ smallest subgrid containing object """
-    return crop(grid, ulcornerIndices(patch), shapeIndices(patch))
 
 
 
@@ -5074,47 +5108,8 @@ def hfrontier(
 
 #tbc
 
-@dsl.primitive
-def backdropObject(
-    patch: Object
-) -> Indices:
-    """ indices in bounding box of patch """
-    if len(patch) == 0:
-        return frozenset({})
-    indices = toindicesObject(patch)
-    si, sj = ulcornerIndices(indices)
-    ei, ej = lrcornerObject(patch)
-    return frozenset((i, j) for i in range(si, ei + 1) for j in range(sj, ej + 1))
 
-@dsl.primitive
-def backdropIndices(
-    patch: Indices
-) -> Indices:
-    """ indices in bounding box of patch """
-    if len(patch) == 0:
-        return frozenset({})
-    indices = toindicesIndices(patch)
-    si, sj = ulcornerIndices(indices)
-    ei, ej = lrcornerIndices(patch)
-    return frozenset((i, j) for i in range(si, ei + 1) for j in range(sj, ej + 1))
 
-@dsl.primitive
-def deltaObject(
-    patch: Object
-) -> Indices:
-    """ indices in bounding box but not part of patch """
-    if len(patch) == 0:
-        return frozenset({})
-    return backdropObject(patch) - toindicesObject(patch)
-
-@dsl.primitive
-def deltaIndices(
-    patch: Indices
-) -> Indices:
-    """ indices in bounding box but not part of patch """
-    if len(patch) == 0:
-        return frozenset({})
-    return backdropIndices(patch) - toindicesIndices(patch)
 
 @dsl.primitive
 def gravitateOO(
@@ -5375,20 +5370,8 @@ def vperiod(
 
 
 
-def check_ragged(x:dslGrid) -> Boolean:
-    t = len(x[0])
-    for row in x:
-        if len(row) != t:
-            return True
-    return False
 
-def ttToGrid(x:dslGrid) -> Grid:
-    if check_ragged(x):
-        primitive_assert(False, "This is not of the right shape for Grid")
-    return Grid(np.array(x))
         
-
 print(f"Registered {len(dsl.primitives)} total primitives.")
 
-p = dsl # backwards compatibility
-'''
+p = dsl
