@@ -18,6 +18,8 @@ def test_evaluate(task, soln):
     corrects_list = []
     n_test = len(task.test_examples)
     for i, frontier in enumerate(soln.entries):
+        if i > 1: 
+            break
         f = frontier.program.evaluate([])
         
         corrects = 0
@@ -121,6 +123,8 @@ if __name__ == '__main__':
                         outputPrefix='./experimentOutputs/arc/',
                         **args)
     # run the DreamCoder learning process for the set number of iterations
+    failed_tasks = []
+    success_tasks = []
     for i, result in enumerate(generator):
         # print(result)
 
@@ -131,7 +135,13 @@ if __name__ == '__main__':
             if len(soln.entries) == 0:
                 continue
             try:
+                if task.name in failed_tasks:
+                    continue
                 h1, h3 = test_evaluate(task, soln)
+                if not h1 or not h3:
+                    failed_tasks.append(task.name)
+                else:
+                    success_tasks.append(task.name)
             except Exception as e:
                 print(f'Exception {e} while evaluating {task.name}')
                 h1, h3 = False, False
@@ -139,11 +149,11 @@ if __name__ == '__main__':
             hit3 += h3
 
         print(f'Test summary: {hit1} ({hit1/len(result.taskSolutions):.1%}) acc@1, {hit3} ({hit3/len(result.taskSolutions):.1%}) acc@3')
-
+        
         os.makedirs('results/', exist_ok=True)
         dill.dump(result, open(f'results/result_{run_id}_{i}.pkl', 'wb'))
         print('ecIterator count {}'.format(i))
-
+        print(f'We succeded on {len(success_tasks)} tasks, the successful tasks are {success_tasks}.')
         if args['evalset']:
             wandb.log({'test-hit1-eval': hit1, 'test-hit3-eval': hit3, 'iteration': i})
         elif args['bothset']:
