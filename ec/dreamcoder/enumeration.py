@@ -614,6 +614,7 @@ def enumerateForTasks(g, tasks, likelihoodModel, _=None,
                                              upperBound=budget,
                                              lowerBound=previousBudget):
                 descriptionLength = -prior
+                #print(p, prior, upperBound, lowerBound)
                 try:
                     # Shouldn't see it on this iteration
                     assert descriptionLength <= budget

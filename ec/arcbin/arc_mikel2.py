@@ -10,7 +10,7 @@ from dreamcoder.domains.arc.makeTasks import get_arc_task, get_arc_tasks
 from dreamcoder.domains.arc.main import MikelArcNet
 #from dreamcoder.domains.arc import arcPrimitivesIC2
 #from dreamcoder.domains.arc import old_arcPrimitivesIC2
-from dreamcoder.domains.arc import test_arcPrimitivesIC2
+from dreamcoder.domains.arc import alt_arcPrimitivesIC2COPY
 
 import wandb
 
@@ -43,8 +43,8 @@ if __name__ == '__main__':
     #arcPrimitivesIC2.dsl.generate_ocaml_primitives()
     #primitives = old_arcPrimitivesIC2.dsl.primitives.values()
     #old_arcPrimitivesIC2.dsl.generate_ocaml_primitives()
-    primitives = test_arcPrimitivesIC2.dsl.primitives.values()
-    test_arcPrimitivesIC2.dsl.generate_ocaml_primitives()
+    primitives = alt_arcPrimitivesIC2COPY.dsl.primitives.values()
+    alt_arcPrimitivesIC2COPY.dsl.generate_ocaml_primitives()
     # make a starting grammar to enumerate over
     grammar = Grammar.uniform(primitives)
     print(grammar)
@@ -104,7 +104,7 @@ if __name__ == '__main__':
         run.define_metric('test-hit3-both', summary='max', goal='maximize', step_metric='iteration')
     else:
         print('Running on train-set')
-        training = get_arc_tasks(n=300, eval=False)
+        training = get_arc_tasks(n=400, eval=False)
         run.define_metric('test-hit1', summary='max', goal='maximize', step_metric='iteration')
         run.define_metric('test-hit3', summary='max', goal='maximize', step_metric='iteration')
 
