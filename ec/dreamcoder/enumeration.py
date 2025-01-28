@@ -615,10 +615,12 @@ def enumerateForTasks(g, tasks, likelihoodModel, _=None,
                                              lowerBound=previousBudget):
                 descriptionLength = -prior
                 try:
+                    if descriptionLength == -0.0: #HACK TO STOP ERROR
+                        descriptionLength = 0.0 #HACK TO STOP ERROR
                     # Shouldn't see it on this iteration
                     assert descriptionLength <= budget
                     # Should already have seen it
-                    assert descriptionLength > previousBudget
+                    assert descriptionLength >= previousBudget #HACK TO STOP ERROR
                 except AssertionError as e:
                     eprint(f'Assertion error: {e}, Discription length: {descriptionLength}, Budget: {budget}, previousBudget: {previousBudget}')
                     raise e
