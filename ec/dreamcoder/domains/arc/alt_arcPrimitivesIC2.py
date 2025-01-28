@@ -3525,7 +3525,7 @@ def fork(
     return lambda x: outer(a(x), b(x))
 
 @dsl.primitive
-def apply(
+def dsl_apply(
     function: Callable,
     container: Container
 ) -> Container:
@@ -3668,7 +3668,7 @@ def mapply(
     container: ContainerContainer
 ) -> FrozenSet:
     """ apply and merge """
-    return merge(apply(function, container))
+    return merge(dsl_apply(function, container))
 
 @dsl.primitive
 def papply(
@@ -4903,7 +4903,7 @@ def positionII(
         return (-1, 1 if ja < jb else -1)
 
 @dsl.primitive
-def index(
+def dsl_index(
     grid: Grid,
     loc: IntegerTuple
 ) -> Integer:

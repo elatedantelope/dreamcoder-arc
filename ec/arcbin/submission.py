@@ -94,6 +94,7 @@ if __name__ == '__main__':
     # symmetry_tasks = [30, 38, 52, 56, 66, 70, 82, 86, 105, 108, 112, 115, 116, 139, 141, 149, 151, 154, 163, 171, 176, 178, 179, 209, 210, 240, 241, 243, 248, 310, 345, 359, 360, 379, 371, 384]
     # training = [get_arc_task(i) for i in symmetry_tasks]
     run.define_metric('iteration')
+    args['evalset'] = True
     if args['evalset']:
         print('Running on eval-set')
         training = get_arc_tasks(n=400, eval=True)

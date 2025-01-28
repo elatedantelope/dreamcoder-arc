@@ -13,7 +13,6 @@ from dreamcoder.fragmentGrammar import *
 from dreamcoder.taskBatcher import *
 from dreamcoder.primitiveGraph import graphPrimitives
 from dreamcoder.dreaming import backgroundHelmholtzEnumeration
-
 import wandb
 
 class ECResult():
@@ -96,6 +95,10 @@ class ECResult():
                      "activation": "act",
                      "storeTaskMetrics": 'STM',
                      "topkNotMAP": "tknm",
+                     "submission": "sb",
+                     "save_data": "sd",
+                     "default_task_isolation": "dti",
+                     "noConsolidation": "nc",
                      "rewriteTaskMetrics": "RW",
                      'taskBatchSize': 'batch'}
 
@@ -179,7 +182,8 @@ def ecIterator(grammar, tasks,
                rewriteTaskMetrics=True,
                auxiliaryLoss=False,
                custom_wake_generative=None,
-
+               save_data=True,
+               submission=False,
                evalset=None, # ignored
                bothset=None, # ignored
                task_isolation=False,
@@ -299,6 +303,30 @@ def ecIterator(grammar, tasks,
         resume = len(result.grammars) - 1
         eprint("Loaded checkpoint from", path)
         grammar = result.grammars[-1] if result.grammars else grammar
+    elif submission:
+                #for graphing of testing tasks
+        numTestingTasks = len(testingTasks) if len(testingTasks) != 0 else None
+        with open('grammar_1.pickle', "rb") as handle:
+            submission_grammar = dill.load(handle)
+        with open('recog_model.pickle', "rb") as handle:
+            submission_recognition_model = dill.load(handle)
+
+        # submission_grammar = Grammar()
+        # submission_grammar.load_state_dict(torch.load('grammar_1.py'))
+
+        # submission_recognition_model = RecognitionModel(submission_grammar, feature_extract, previousRecognitionModel=recog_model)
+        # submission_recognition_model.load_state_dict(torch.load('recog_model_params.py'))
+
+        result = ECResult(parameters=parameters,            
+                          grammars=[submission_grammar],
+                          taskSolutions={
+                              t: Frontier([],
+                                          task=t) for t in tasks},
+                          recognitionModel=submission_recognition_model, numTestingTasks=numTestingTasks,
+                          allFrontiers={
+                              t: Frontier([],
+                                          task=t) for t in tasks})
+
     else:  # Start from scratch
         #for graphing of testing tasks
         numTestingTasks = len(testingTasks) if len(testingTasks) != 0 else None
@@ -461,7 +489,7 @@ def ecIterator(grammar, tasks,
                                enumerationTimeout=enumerationTimeout,
                                helmholtzRatio=thisRatio, helmholtzFrontiers=helmholtzFrontiers(),
                                auxiliaryLoss=auxiliaryLoss, cuda=cuda, CPUs=CPUs, solver=solver,
-                               recognitionSteps=recognitionSteps, maximumFrontier=maximumFrontier)
+                               recognitionSteps=recognitionSteps, maximumFrontier=maximumFrontier, save_data=save_data)
 
             showHitMatrix(tasksHitTopDown, tasksHitBottomUp, wakingTaskBatch)
             
@@ -486,7 +514,24 @@ def ecIterator(grammar, tasks,
         else:
             eprint("Skipping consolidation.")
             result.grammars.append(grammar)
-            
+
+        if save_data:
+            # path = checkpointPath(j + 1)
+            # with open(path, "wb") as handle:
+            # print(result)
+            with open('grammar_1.pickle', "wb") as handle:
+                try:
+                    dill.dump(result.grammars[-1], handle)
+                except TypeError as e:
+                    eprint(result)
+                    assert(False)
+            with open('feature_extractor.pickle', "wb") as handle:
+                try:
+                    dill.dump(result.grammars[-1], handle)
+                except TypeError as e:
+                    eprint(result)
+                    assert(False)
+
         if outputPrefix is not None:
             path = checkpointPath(j + 1)
             with open(path, "wb") as handle:
@@ -582,7 +627,7 @@ def sleep_recognition(result, grammar, taskBatch, tasks, testingTasks, allFronti
                       previousRecognitionModel=None, recognitionSteps=None,
                       timeout=None, enumerationTimeout=None, evaluationTimeout=None,
                       helmholtzRatio=None, helmholtzFrontiers=None, maximumFrontier=None,
-                      auxiliaryLoss=None, cuda=None, CPUs=None, solver=None):
+                      auxiliaryLoss=None, cuda=None, CPUs=None, solver=None, save_data=True):
     eprint("Using an ensemble size of %d. Note that we will only store and test on the best recognition model." % ensembleSize)
 
     featureExtractorObjects = [featureExtractor(tasks, testingTasks=testingTasks, cuda=cuda) for i in range(ensembleSize)]
@@ -643,6 +688,15 @@ def sleep_recognition(result, grammar, taskBatch, tasks, testingTasks, allFronti
     # Store the recognizer that discovers the most frontiers in the result.
     eprint("Best recognizer: %d." % bestRecognizer)
     result.recognitionModel = trainedRecognizers[bestRecognizer]
+    if save_data:
+        with open('recog_model.pickle', "wb") as handle:
+            try:
+                dill.dump(result.recognitionModel, handle)
+            except TypeError as e:
+                eprint(result)
+                assert(False)
+        # eprint('Saved the best recognition model.')
+        # torch.save(result.recognitionModel.state_dict(), 'recog_model_params.py')
     result.trainSearchTime = {tk: tm for tk, tm in ensembleRecognitionTimes[bestRecognizer].items()
                               if tm is not None}
     updateTaskSummaryMetrics(result.recognitionTaskMetrics, ensembleRecognitionTimes[bestRecognizer], 'recognitionBestTimes')
