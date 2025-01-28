@@ -71,6 +71,8 @@ def new_dropped_dataset():
         expansion = test_drop(id)
     return(expansion)
 
+    
+
 with open("transformations.json", "w") as outfile:
     json.dump(new_dropped_dataset(), outfile)
 
@@ -101,6 +103,37 @@ def augment(train_or_eval, id, rotation, mirror):
 # go through the whole dataset and do the seven transformations of each task
 # def dataset():
 
+
+
+with open("transformations.json", "w") as outfile:
+    json.dump(new_dropped_dataset(), outfile)
+
+
+
+#outer_dict = {id: data["train"][id]}
+#aug_dict = {"train": [], "test": []}
+
+outer_dict = {"train": {}, "eval": {}}
+
+# a function for generating a new task from a given task, based on the arguments
+# arg 1: "train" or "eval", to choose which part of the dataset the given task is from
+# arg 2: id e.g. "a68b268e", the id of the given task
+# arg 3: degrees e.g. 90, 180, 270, how many degrees to rotate
+# arg 4: True/False, whether it should also be rotated or not
+def augment(train_or_eval, id, rotation, mirror):
+    aug_dict = {"train": [], "test": []}
+    for item in range(len(data[train_or_eval][id]["train"])):
+        input_array = np.array(data[train_or_eval][id]["train"][item]["input"])
+        output_array = np.array(data[train_or_eval][id]["train"][item]["output"])
+        aug_dict["train"].append({"input": rotate(input_array, rotation, mirror), "output": rotate(output_array, rotation, mirror)})
+    for item in range(len(data[train_or_eval][id]["test"])):
+        input_array = np.array(data[train_or_eval][id]["test"][item]["input"])
+        output_array = np.array(data[train_or_eval][id]["test"][item]["output"])
+        aug_dict["test"].append({"input": rotate(input_array, rotation, mirror), "output": rotate(output_array, rotation, mirror)})
+    return aug_dict
+
+# go through the whole dataset and do the seven transformations of each task
+# def dataset():
 
 # takes a task (id) as input, applies rotations, adds them to dictionary with new ids
 def rotations(train_or_eval, id):
