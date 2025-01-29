@@ -10,7 +10,7 @@ from dreamcoder.domains.arc.makeTasks import get_arc_task, get_arc_tasks
 from dreamcoder.domains.arc.main import MikelArcNet
 #from dreamcoder.domains.arc import arcPrimitivesIC2
 #from dreamcoder.domains.arc import old_arcPrimitivesIC2
-from dreamcoder.domains.arc import test_arcPrimitivesIC2
+from dreamcoder.domains.arc import alt_arcPrimitivesIC2COPY
 
 import wandb
 
@@ -45,8 +45,8 @@ if __name__ == '__main__':
     #arcPrimitivesIC2.dsl.generate_ocaml_primitives()
     #primitives = old_arcPrimitivesIC2.dsl.primitives.values()
     #old_arcPrimitivesIC2.dsl.generate_ocaml_primitives()
-    primitives = test_arcPrimitivesIC2.dsl.primitives.values()
-    test_arcPrimitivesIC2.dsl.generate_ocaml_primitives()
+    primitives = alt_arcPrimitivesIC2COPY.dsl.primitives.values()
+    alt_arcPrimitivesIC2COPY.dsl.generate_ocaml_primitives()
     # make a starting grammar to enumerate over
     grammar = Grammar.uniform(primitives)
     # print(grammar)

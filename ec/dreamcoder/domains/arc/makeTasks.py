@@ -1,5 +1,5 @@
-from dreamcoder.domains.arc.test_arcPrimitivesIC2 import *
-import dreamcoder.domains.arc.test_arcPrimitivesIC2 as p
+from dreamcoder.domains.arc.alt_arcPrimitivesIC2COPY import *
+import dreamcoder.domains.arc.alt_arcPrimitivesIC2COPY as p
 from dreamcoder.domains.arc.arcInput import load_task, num_to_id
 
 import arckit
