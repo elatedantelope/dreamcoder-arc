@@ -1,6 +1,7 @@
 #!/bin/sh
-#SBATCH -p cbuild
-#SBATCH -t 2:00:00
+#SBATCH -p gpu
+#SBATCH -t 12:00:00
+#SBATCH --gpus=1
  
 # Explicitly set the temporary directory to use (see below)
 module purge
@@ -19,4 +20,13 @@ pip install vose
 pip install dill sexpdata pygame pycairo cairocffi psutil pypng Box2D-kengz graphviz frozendict pathos
 pip install rich drawsvg pytest line_profiler wandb==0.18.7
 pip install drawsvg
+# Submit the job 
+ 
+#change directory
+cd ec
+#../container_mod.img python -u arcbin/arc_mikel2.py -c 18 -t 3600 -R 2400 -i 2
+source ../venv/bin/activate
+wandb offline
+python -u arcbin/submission.py -c 18 -t 3600 -R 2400 -i 5
 # Submit the job
+

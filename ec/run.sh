@@ -1,6 +1,6 @@
 #!/bin/sh
 #SBATCH -p gpu
-#SBATCH -t 9:00:00
+#SBATCH -t 12:00:00
 #SBATCH --gpus=1
 
 # Explicitly set the temporary directory to use (see below)
@@ -18,5 +18,5 @@ module load SciPy-bundle/2023.07-gfbf-2023a
 #../container_mod.img python -u arcbin/arc_mikel2.py -c 18 -t 3600 -R 2400 -i 2
 source ../venv/bin/activate
 wandb offline
-python -u arcbin/arc_mikel2.py -c 18 -t 3600 -R 2400 -i 2
+python -u arcbin/submission.py -c 18 -t 3600 -R 2400 -i 5
 # Submit the job

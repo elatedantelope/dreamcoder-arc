@@ -6,6 +6,27 @@ which is described in the paper
 > *Mikel Bober-Irizar & Soumya Banerjee*
 
 https://arxiv.org/abs/2402.03507
+
+## Running on Snellius
+Note: Although the scripts ```build_and_run.sh``` and ```ec/run.sh``` use the partition gpu, they do not actually use gpu, (there were to many errors in the dreamcoder code getting cuda to work). If these scripts are modified to run on a different partition, then the number of cores ```-c``` should be changed to the number of cores available.
+
+
+Clone the repository, and then enter it. 
+
+```bash
+git clone https://github.com/elatedantelope/dreamcoder-arc.git
+cd dreamcoder-arc 
+```
+Then you can either run ```sbatch build.sh``` and after that 
+```bash
+cd ec
+sbatch run.sh
+```
+The output file will be called "results.txt"
+
+Alternatively you can run ```sbatch build_and_run.sh``` which will first build the virtual enviroment and then start project. 
+
+
 ## Building the DreamCoder environment in MacOs
 
 Install dependencies for the python packages:
