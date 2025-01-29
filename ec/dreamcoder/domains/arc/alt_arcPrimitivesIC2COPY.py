@@ -14,6 +14,9 @@ from statistics import mode
 
 from typing import Tuple, NewType, List, Callable, Dict, Type, FrozenSet, Union, Container
 
+
+tinteger = baseType("integer")
+Integer = NewType("Integer", int)
 tgrid = baseType("grid")
 tsize = baseType("size")
 Size = NewType("Size", Tuple[Tuple[int]])
@@ -88,8 +91,7 @@ class Grid():
 
 tboolean = baseType("boolean")
 Boolean = NewType("Boolean", bool)
-tinteger = baseType("integer")
-Integer = NewType("Integer", int)
+
 tcord = baseType("cord")
 Cord = NewType("Cord", Tuple[Integer, Integer])
 
@@ -108,7 +110,7 @@ tintegerset = baseType("integerset")
 IntegerSet = NewType("IntegerSet", FrozenSet[Integer])
 
 tdslGrid = baseType("dslGrid")
-dslGrid = NewType("dslGrid", Tuple[Tuple[int]])
+dslGrid = NewType("dslGrid", Tuple[Tuple[Integer]])
 
 ttupletuple = baseType("tupletuple")
 TupleTuple = NewType("TupleTuple", Tuple[Tuple])
@@ -1223,23 +1225,23 @@ def identityObjects(
 
 @dsl.primitive
 def addInt(
-    a: int,
-    b: int
-) -> int:
+    a: Integer,
+    b: Integer
+) -> Integer:
     """ addition """
     return a + b
 
 @dsl.primitive
 def addCordInt(
     a: Cord,
-    b: int
+    b: Integer
 ) -> Cord:
     """ addition """
     return (a[0] + b, a[1] + b)
 
 @dsl.primitive
 def addIntCord(
-    a: int,
+    a: Integer,
     b: Cord
 ) -> Cord:
     """ addition """
@@ -1255,9 +1257,9 @@ def addCord(
 
 @dsl.primitive
 def subtractInt(
-    a: int,
-    b: int
-) -> int:
+    a: Integer,
+    b: Integer
+) -> Integer:
     """ subtraction """
     return a - b
 
@@ -1271,7 +1273,7 @@ def subtractCord(
 
 @dsl.primitive
 def subtractIntCord(
-    a: int,
+    a: Integer,
     b: Cord
 ) -> Cord:
     """ subtraction """
@@ -1280,16 +1282,16 @@ def subtractIntCord(
 @dsl.primitive
 def subtractCordInt(
     a: Cord,
-    b: int
+    b: Integer
 ) -> Cord:
     """ subtraction """
     return (a[0] - b, a[1] - b)
 
 @dsl.primitive
 def multiplyInt(
-    a: int,
-    b: int
-) -> int:
+    a: Integer,
+    b: Integer
+) -> Integer:
     """ multiplication """
     return a * b
 
@@ -1303,7 +1305,7 @@ def multiplyCord(
 
 @dsl.primitive
 def multiplyIntCord(
-    a: int,
+    a: Integer,
     b: Cord
 ) -> Cord:
     """ multiplication """
@@ -1312,16 +1314,16 @@ def multiplyIntCord(
 @dsl.primitive
 def multiplyCordInt(
     a: Cord,
-    b: int
+    b: Integer
 ) -> Cord:
     """ multiplication """
     return (a[0] * b, a[1] * b)
     
 @dsl.primitive
 def divideInt(
-    a: int,
-    b: int
-) -> int:
+    a: Integer,
+    b: Integer
+) -> Integer:
     """ floor division """
     if b == 0:
         primitive_assert(False, 'Function not designed for 0, b')
@@ -1337,7 +1339,7 @@ def divideCord(
 
 @dsl.primitive
 def divideIntCord(
-    a: int,
+    a: Integer,
     b: Cord
 ) -> Cord:
     """ floor division """
@@ -1346,7 +1348,7 @@ def divideIntCord(
 @dsl.primitive
 def divideCordInt(
     a: Cord,
-    b: int
+    b: Integer
 ) -> Cord:
     if b == 0:
         primitive_assert(False, 'Function not designed for 0, b')
@@ -1355,8 +1357,8 @@ def divideCordInt(
 
 @dsl.primitive
 def invertInt(
-    n: int
-) -> int:
+    n: Integer
+) -> Integer:
     """ inversion with respect to addition """
     return -n
 
@@ -1376,8 +1378,8 @@ def even(
 
 @dsl.primitive
 def doubleInt(
-    n: int
-) -> int:
+    n: Integer
+) -> Integer:
     """ scaling by two """
     # why? already have multi
     return n * 2
@@ -1392,8 +1394,8 @@ def doubleCord(
 
 @dsl.primitive
 def halveInt(
-    n: int
-) -> int:
+    n: Integer
+) -> Integer:
     """ scaling by one half """
     # why? already have div
     return n // 2
@@ -1415,8 +1417,8 @@ def flip(
 
 @dsl.primitive
 def equalityInt(
-    a: int,
-    b: int
+    a: Integer,
+    b: Integer
 ) -> Boolean:
     """ equality """
     return a == b
@@ -1545,7 +1547,7 @@ def equalityObjects(
 
 @dsl.primitive
 def containedInt(
-    value: int,
+    value: Integer,
     container: Container
 ) -> Boolean:
     """ element of """
@@ -1561,7 +1563,7 @@ def containedBool(
 
 @dsl.primitive
 def containedCord(
-    value: Tuple[int ,int],
+    value: Cord,
     container: Container
 ) -> Boolean:
     """ element of """
@@ -1730,7 +1732,7 @@ def repeatBool(
 
 @dsl.primitive
 def repeatCord(
-    item: Tuple[int ,int],
+    item: Cord,
     num: Integer
 ) -> Tuple:
     """ repetition of item within vector """
@@ -1914,7 +1916,7 @@ def argmaxBool(
 def argmaxCord(
     container: Container,
     compfunc: Callable
-) -> Tuple[int ,int]:
+) -> Cord:
     """ largest item by custom order """
     return max(container, key=compfunc)
 
@@ -2044,7 +2046,7 @@ def argminBool(
 def argminCord(
     container: Container,
     compfunc: Callable
-) -> Tuple[int ,int]:
+) -> Cord:
     """ largest item by custom order """
     return min(container, key=compfunc)
 
