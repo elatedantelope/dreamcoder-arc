@@ -585,7 +585,7 @@ def crop(
     """ subgrid specified by start and dimension """
     temp = gridToTT(grid)
     grid = temp
-    return ttToGrid(Tuple(r[start[1]:start[1]+dims[1]] for r in grid[start[0]:start[0]+dims[0]]))
+    return ttToGrid(tuple(r[start[1]:start[1]+dims[1]] for r in grid[start[0]:start[0]+dims[0]]))
 
 @dsl.primitive
 def switch(

@@ -17,7 +17,12 @@ Clone the repository, and then enter it.
 git clone https://github.com/elatedantelope/dreamcoder-arc.git
 cd dreamcoder-arc 
 ```
-Then you can either run ```sbatch build.sh``` and after that 
+Then you can either run 
+
+```bash_
+sbatch build_venv.sh_
+``` 
+This should take less than 30 minutes and builds a python virtual environment ```venv``` in the current folder. After this job completes run
 ```bash
 cd ec
 sbatch run.sh

@@ -155,7 +155,8 @@ if __name__ == '__main__':
         os.makedirs('results/', exist_ok=True)
         dill.dump(result, open(f'results/result_{run_id}_{i}.pkl', 'wb'))
         print('ecIterator count {}'.format(i))
-        print(f'We succeded on {len(success_tasks)} tasks, the successful tasks are {success_tasks}.')
+        with open('results.txt', 'w') as f:
+            print(f'We succeded on {len(success_tasks)} tasks, the successful tasks are {success_tasks} on itteration {i}\n', file=f)
         if args['evalset']:
             wandb.log({'test-hit1-eval': hit1, 'test-hit3-eval': hit3, 'iteration': i})
         elif args['bothset']:

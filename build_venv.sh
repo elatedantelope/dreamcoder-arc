@@ -1,6 +1,6 @@
 #!/bin/sh
 #SBATCH -p cbuild
-#SBATCH -t 2:00:00
+#SBATCH -t 50:00
  
 # Explicitly set the temporary directory to use (see below)
 module purge
