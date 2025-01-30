@@ -97,6 +97,7 @@ def get_arc_tasks(n=None, eval=False):
     trainset, evalset = arckit.load_data()
     dataset = evalset if eval else trainset
     if n:
+        dataset.tasks = sorted(dataset.tasks, key=lambda x: x.id)
         dataset = dataset[:n]
     return [convert_arc_task(task) for task in dataset]
 
