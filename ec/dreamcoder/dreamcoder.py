@@ -525,13 +525,6 @@ def ecIterator(grammar, tasks,
                 except TypeError as e:
                     eprint(result)
                     assert(False)
-            with open('feature_extractor.pickle', "wb") as handle:
-                try:
-                    dill.dump(result.grammars[-1], handle)
-                except TypeError as e:
-                    eprint(result)
-                    assert(False)
-
         if outputPrefix is not None:
             path = checkpointPath(j + 1)
             with open(path, "wb") as handle:
