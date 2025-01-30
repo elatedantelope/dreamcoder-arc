@@ -20,7 +20,7 @@ cd dreamcoder-arc
 Then you can either run 
 
 ```bash_
-sbatch build_venv.sh_
+sbatch build_venv.sh
 ``` 
 This should take less than 30 minutes and builds a python virtual environment ```venv``` in the current folder. After this job completes run
 ```bash
